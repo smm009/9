@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KhmerSMM - ហាងលក់អាខោនឌីជីថល</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    * {
+      font-family: 'Kantumruy Pro', sans-serif;
+    }
+    body {
+      background-color: #070913;
+      color: #f8fafc;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 210, 255, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.09) 0%, transparent 40%);
+      min-height: 100vh;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.86);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .product-card:hover {
+      border-color: rgba(0, 210, 255, 0.45);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px -8px rgba(0, 210, 255, 0.2);
+    }
+    .btn-neon {
+      background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 100%);
+      transition: all 0.25s ease;
+    }
+    .btn-neon:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 0 22px rgba(6, 182, 212, 0.45);
+    }
+    .btn-google {
+      background: #ffffff;
+      color: #1f2937;
+      transition: all 0.2s ease;
+    }
+    .btn-google:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(255, 255, 255, 0.15);
+    }
+    .duration-card {
+      background: rgba(30, 41, 59, 0.65);
+      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.2s ease;
+    }
+    .duration-card:hover {
+      border-color: rgba(6, 182, 212, 0.5);
+      background: rgba(30, 41, 59, 0.9);
+    }
+    .duration-card.selected {
+      border-color: #06b6d4;
+      background: rgba(6, 182, 212, 0.16);
+      box-shadow: 0 0 18px rgba(6, 182, 212, 0.22);
+    }
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.95) translateY(8px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-animate {
+      animation: modalFadeIn 0.22s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-cyan-500 selection:text-white">
+
+  <!-- STEP 0: Sign-Up / Login Screen -->
+  <div id="auth-screen" class="min-h-screen flex items-center justify-center p-4">
+    <div class="glass-card modal-animate w-full max-w-md rounded-3xl p-7 sm:p-8 border border-slate-700/80 shadow-2xl space-y-5">
+      <div class="text-center space-y-2">
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center mx-auto shadow-lg">
+          <svg viewBox="0 0 24 24" class="w-8 h-8 fill-white">
+            <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V8.26l7-3.89v8.62z"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-extrabold text-white tracking-tight">KhmerSMM</h1>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          ចុះឈ្មោះ ឬចូលគណនី ដើម្បីបន្តការទិញអាខោន
+        </p>
+      </div>
+
+      <!-- Mode Switch Tabs: Register vs Login -->
+      <div class="grid grid-cols-2 gap-1.5 bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
+        <button type="button" id="tab-register" onclick="switchAuthMode('register')" class="py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer">
+          ចុះឈ្មោះថ្មី
+        </button>
+        <button type="button" id="tab-login" onclick="switchAuthMode('login')" class="py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer">
+          ចូលគណនី
+        </button>
+      </div>
+
+      <!-- Register Form -->
+      <form id="register-form" onsubmit="handleRegisterSubmit(event)" class="space-y-3.5 text-left">
+        <div>
+          <label for="reg-name" class="block text-xs font-semibold text-slate-300 mb-1">ឈ្មោះ</label>
+          <input
+            type="text"
+            id="reg-name"
+            required
+            placeholder="បញ្ចូលឈ្មោះរបស់អ្នក"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-sm text-white placeholder-slate-500 outline-none transition"
+          />
+        </div>
+
+        <div>
+          <label for="reg-contact" class="block text-xs font-semibold text-slate-300 mb-1">អ៊ីមែល ឬ លេខទូរស័ព្ទ</label>
+          <input
+            type="text"
+            id="reg-contact"
+            required
+            placeholder="example@gmail.com ឬ 012 345 678"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-sm text-white placeholder-slate-500 outline-none transition"
+          />
+        </div>
+
+        <div>
+          <label for="reg-password" class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+          <input
+            type="password"
+            id="reg-password"
+            required
+            minlength="6"
+            placeholder="បង្កើតពាក្យសម្ងាត់ (យ៉ាងតិច ៦ តួ)"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-sm text-white placeholder-slate-500 outline-none transition"
+          />
+        </div>
+
+        <p id="auth-error-msg" class="hidden text-xs text-rose-400 font-medium"></p>
+
+        <button type="submit" class="w-full py-3 rounded-2xl btn-neon text-white font-bold text-sm shadow-lg cursor-pointer">
+          ចុះឈ្មោះ
+        </button>
+      </form>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="hidden space-y-3.5 text-left">
+        <div>
+          <label for="login-contact" class="block text-xs font-semibold text-slate-300 mb-1">អ៊ីមែល ឬ លេខទូរស័ព្ទ</label>
+          <input
+            type="text"
+            id="login-contact"
+            required
+            placeholder="example@gmail.com ឬ 012 345 678"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-sm text-white placeholder-slate-500 outline-none transition"
+          />
+        </div>
+
+        <div>
+          <label for="login-password" class="block text-xs font-semibold text-slate-300 mb-1">Password</label>
+          <input
+            type="password"
+            id="login-password"
+            required
+            placeholder="បញ្ចូលពាក្យសម្ងាត់"
+            class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-sm text-white placeholder-slate-500 outline-none transition"
+          />
+        </div>
+
+        <p id="login-error-msg" class="hidden text-xs text-rose-400 font-medium"></p>
+
+        <button type="submit" class="w-full py-3 rounded-2xl btn-neon text-white font-bold text-sm shadow-lg cursor-pointer">
+          ចូលគណនី
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="relative flex items-center py-0.5">
+        <div class="flex-grow border-t border-slate-800"></div>
+        <span class="px-3 text-[11px] text-slate-400">ឬ</span>
+        <div class="flex-grow border-t border-slate-800"></div>
+      </div>
+
+      <!-- Google Sign-In Section -->
+      <div id="g_id_signin_wrapper" class="flex justify-center"></div>
+
+      <div id="google-initial-actions" class="space-y-3">
+        <button type="button" onclick="openGoogleEmailChooser()" class="w-full py-3 px-5 rounded-2xl btn-google font-bold text-sm flex items-center justify-center gap-3 shadow-md cursor-pointer">
+          <svg viewBox="0 0 24 24" class="w-5 h-5 shrink-0">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.11-6.72-4.96H1.29v3.14C3.26 21.3 7.31 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.24c-.24-.72-.38-1.49-.38-2.24s.14-1.52.38-2.24V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.99-3.14z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.99 3.14c.95-2.85 3.6-4.96 6.72-4.96z"/>
+          </svg>
+          <span>ចុះឈ្មោះតាមរយៈ Google</span>
+        </button>
+      </div>
+
+      <!-- Guest Google Email Chooser / Input Panel -->
+      <div id="google-email-panel" class="hidden text-left bg-slate-900/90 border border-slate-700/80 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <span class="text-xs font-bold text-white">ជ្រើសរើស ឬបញ្ចូលអ៊ីមែល Google</span>
+          <button type="button" onclick="closeGoogleEmailChooser()" class="text-xs text-slate-400 hover:text-white cursor-pointer">✕</button>
+        </div>
+
+        <form onsubmit="submitGuestGoogleEmail(event)" class="space-y-3">
+          <div>
+            <input
+              type="email"
+              id="guest-google-email"
+              required
+              placeholder="example@gmail.com"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 text-sm text-white placeholder-slate-500 outline-none transition"
+            />
+            <p id="email-error-msg" class="hidden text-[11px] text-rose-400 mt-1">សូមបញ្ចូលអាសយដ្ឋានអ៊ីមែលឱ្យបានត្រឹមត្រូវ!</p>
+          </div>
+          <button type="submit" class="w-full py-2.5 rounded-xl btn-neon text-white font-bold text-xs shadow-md cursor-pointer">
+            បន្តដោយប្រើអ៊ីមែលនេះ →
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Store Page (Shown after Sign-In) -->
+  <div id="store-screen" class="hidden">
+    <!-- Top Bar with Telegram Button & User Account Strip -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-6 flex flex-wrap items-center justify-end gap-2.5">
+      <a
+        href="https://t.me/KhmerSmm005"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="glass-card rounded-full py-2 px-4 flex items-center gap-2 border border-slate-700/70 hover:border-sky-400/60 text-xs font-bold text-white transition cursor-pointer"
+      >
+        <svg viewBox="0 0 24 24" class="w-4 h-4 fill-sky-400 shrink-0">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+        <span>Telegram</span>
+      </a>
+
+      <div class="glass-card rounded-full py-1.5 pl-2 pr-3.5 flex items-center gap-2.5 border border-slate-700/70">
+        <img id="user-avatar" src="" alt="Profile" class="w-7 h-7 rounded-full object-cover bg-slate-700" />
+        <div class="text-left">
+          <p id="user-name" class="text-xs font-bold text-white leading-none">Guest User</p>
+          <p id="user-email" class="text-[10px] text-slate-400 leading-tight mt-0.5">user@gmail.com</p>
+        </div>
+        <button onclick="logoutUser()" title="ចាកចេញ" class="ml-1.5 text-xs text-rose-400 hover:text-rose-300 font-semibold px-2 py-1 rounded-lg hover:bg-rose-500/10 transition cursor-pointer">
+          ចាកចេញ
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Product Grid -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </main>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div id="checkout-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+    <div class="glass-card modal-animate w-full max-w-md rounded-3xl border border-slate-700/80 shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
+      <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/70">
+        <div class="flex items-center gap-3">
+          <div id="modal-product-icon" class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-md"></div>
+          <div>
+            <h3 id="modal-product-title" class="text-base font-bold text-white leading-tight">ឈ្មោះអាខោន</h3>
+            <p id="modal-product-sub" class="text-xs text-cyan-400 font-medium mt-0.5">ជ្រើសរើសរយៈពេល & ចំនួន Account</p>
+          </div>
+        </div>
+        <button onclick="closeCheckoutModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-5 sm:p-6 overflow-y-auto">
+        <!-- VIEW 1: Select Duration & Quantity -->
+        <div id="step-duration-view" class="space-y-5">
+          <div>
+            <p class="text-sm font-semibold text-slate-200 mb-2.5">១. សូមជ្រើសរើសរយៈពេលដែលអ្នកចង់ទិញ៖</p>
+            <div id="duration-options" class="grid grid-cols-2 gap-3"></div>
+          </div>
+
+          <div class="bg-slate-900/75 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <label for="account-qty-input" class="block text-sm font-semibold text-slate-200">
+              ២. បញ្ចូលចំនួន Account (សរសេរជាលេខ)៖
+            </label>
+            <div class="flex items-center gap-2.5">
+              <button type="button" onclick="adjustQuantity(-1)" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-lg flex items-center justify-center border border-slate-700 transition cursor-pointer">−</button>
+              <input
+                type="number"
+                id="account-qty-input"
+                min="1"
+                max="1000"
+                value="1"
+                oninput="handleQuantityInput()"
+                onblur="normalizeQuantityInput()"
+                placeholder="1"
+                class="w-full h-11 bg-slate-950 border border-cyan-500/40 focus:border-cyan-400 rounded-xl text-center text-lg font-extrabold text-white outline-none transition"
+              />
+              <button type="button" onclick="adjustQuantity(1)" class="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-lg flex items-center justify-center border border-slate-700 transition cursor-pointer">+</button>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 border border-cyan-500/25 rounded-2xl p-4 flex items-center justify-between">
+            <div>
+              <span class="text-xs text-slate-400 block">ទឹកប្រាក់ត្រូវទូទាត់សរុប</span>
+              <span id="summary-formula" class="text-xs text-cyan-400 font-semibold">$10.00 × 1 Account</span>
+            </div>
+            <div class="text-right">
+              <span id="total-usd-preview" class="text-2xl font-extrabold text-emerald-400">$10.00</span>
+            </div>
+          </div>
+
+          <button type="button" onclick="proceedToQRView()" class="w-full py-3.5 rounded-2xl btn-neon text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2 cursor-pointer">
+            <span>Generate KHQR & បន្តទៅទូទាត់</span>
+            <span>→</span>
+          </button>
+        </div>
+
+        <!-- VIEW 2: Bakong Generated KHQR -->
+        <div id="step-qr-view" class="hidden space-y-4">
+          <div class="bg-white rounded-3xl overflow-hidden shadow-xl max-w-[270px] mx-auto border border-slate-200">
+            <div class="bg-red-600 py-2.5 px-4 flex items-center justify-center">
+              <span class="text-white font-black tracking-widest text-sm">KHQR</span>
+            </div>
+
+            <div class="px-4 pt-3 pb-2 text-left border-b border-dashed border-slate-300">
+              <p class="text-[10px] font-bold text-red-600 uppercase">BAKONG • KhmerSMM</p>
+              <div class="flex items-baseline justify-between mt-0.5">
+                <span id="khqr-amount-display" class="text-2xl font-black text-slate-900">12.99</span>
+                <span class="text-xs font-extrabold text-slate-600">USD</span>
+              </div>
+              <p class="text-[10px] text-slate-500 font-mono truncate mt-0.5">mon_samnang@bkrt</p>
+            </div>
+
+            <div class="p-4 flex items-center justify-center bg-white">
+              <div id="khqr-code-box" class="flex items-center justify-center"></div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/90 border border-cyan-500/30 rounded-2xl p-3 text-center space-y-1">
+            <p class="text-xs font-bold text-white">KhmerSMM • Bakong (mon_samnang@bkrt)</p>
+            <p id="qr-instruction-detail" class="text-[11px] text-slate-300">ស្កេន KHQR ដើម្បីផ្ទេរប្រាក់ចំនួន $12.99 USD • Phnom Penh</p>
+            <p id="khqr-status-text" class="text-[11px] font-semibold text-amber-300 pt-0.5">កំពុងរង់ចាំការទូទាត់... (នៅសល់ 300s)</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <button type="button" onclick="downloadGeneratedKHQR()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold text-xs border border-cyan-500/30 transition cursor-pointer">
+              ⬇ រក្សាទុក KHQR
+            </button>
+            <button type="button" onclick="copyKHQRPayload()" id="copy-khqr-btn" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs border border-slate-700 transition cursor-pointer">
+              📋 ចម្លង KHQR
+            </button>
+          </div>
+
+          <button type="button" onclick="confirmPaymentAndDeliver()" class="w-full py-3 rounded-2xl btn-neon text-white font-bold text-xs shadow-lg transition cursor-pointer">
+            ✓ ខ្ញុំបានបង់ប្រាក់រួចរាល់ (ទទួល Account)
+          </button>
+
+          <button onclick="backToDurationSelection()" class="w-full py-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition cursor-pointer">
+            ← ត្រឡប់ទៅរើសរយៈពេល និងចំនួនវិញ
+          </button>
+        </div>
+
+        <!-- VIEW 3: Delivery Success -->
+        <div id="step-delivery-success" class="hidden space-y-4">
+          <div class="text-center space-y-1.5">
+            <div class="w-14 h-14 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center mx-auto text-2xl font-bold">✓</div>
+            <h4 class="text-lg font-bold text-white">ការទូទាត់បានជោគជ័យ!</h4>
+            <p class="text-xs text-slate-400">ខាងក្រោមនេះគឺជាព័ត៌មានអាខោនរបស់អ្នក៖</p>
+          </div>
+
+          <div id="stock-alert-banner" class="hidden bg-amber-500/15 border border-amber-500/40 text-amber-300 rounded-2xl px-3.5 py-2.5 text-xs font-semibold"></div>
+
+          <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
+              <span class="text-slate-400">សេវាកម្ម៖</span>
+              <span id="delivered-service-name" class="font-bold text-cyan-400">ChatGPT Pro (1ខែ × 1)</span>
+            </div>
+            <div id="delivered-accounts-list" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
+          </div>
+
+          <button onclick="closeCheckoutModal()" class="w-full py-3 rounded-2xl btn-neon text-white font-bold text-sm cursor-pointer">រួចរាល់</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
+
+    // ដាក់ URL របស់ Cloudflare Worker របស់អ្នកនៅទីនេះ (កុំដាក់ BAKONG_TOKEN នៅទីនេះ)
+    const WORKER_CHECK_URL = 'YOUR_CLOUDFLARE_WORKER_URL/check-payment';
+
+    const PAYMENT_CONFIG = {
+      bankAccount: 'mon_samnang@bkrt',
+      merchantName: 'KhmerSMM',
+      merchantCity: 'Phnom Penh',
+      depositExpireSec: 300,
+      pollIntervalSec: 5,
+      stockAlertMin: 5
+    };
+
+    const LOGOS = {
+      chatgpt: `<svg viewBox="0 0 24 24" class="w-7 h-7 fill-white"><path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.676l5.815 3.355-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.872zm16.597 3.855l-5.833-3.387L15.119 7.2a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.141-.085-4.774-2.782a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zm-12.64 4.135l-2.02-1.164a.08.08 0 0 1-.038-.057V6.075a4.5 4.5 0 0 1 7.375-3.453l-.142.08L8.704 5.46a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z"/></svg>`,
+      surfshark: `<svg viewBox="0 0 24 24" class="w-7 h-7 fill-white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.8 14.2c-1.9.9-4.2 1.1-6.5.5 1.8-1.4 3-3.4 3.2-5.7.2-1.8-.3-3.5-1.3-4.9 2.6.9 4.7 3.1 5.3 5.9.4 1.5.1 3.1-.7 4.2z"/></svg>`,
+      grok: `<svg viewBox="0 0 24 24" class="w-7 h-7 fill-none stroke-white" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M7.5 16.5L17.5 6.5"/></svg>`,
+      youtube: `<svg viewBox="0 0 24 24" class="w-7 h-7 fill-white"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
+      canva: `<svg viewBox="0 0 24 24" class="w-7 h-7 fill-white"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.4 13.7c-.8 1.2-2.1 1.9-3.6 1.9-2.6 0-4.5-2-4.5-4.8 0-3.1 2.2-5.6 5.1-5.6 1.5 0 2.7.7 3.2 1.7.3.6.1 1.3-.5 1.6-.6.3-1.3.1-1.6-.5-.2-.4-.6-.6-1.1-.6-1.6 0-2.7 1.4-2.7 3.4 0 1.6.9 2.6 2.2 2.6.8 0 1.4-.3 1.8-.9.4-.5 1.1-.7 1.6-.3.5.4.6 1.1.1 1.5z"/></svg>`,
+      gemini: `<svg viewBox="0 0 24 24" class="w-7 h-7 fill-white"><path d="M12 2C12.4 7.3 16.7 11.6 22 12C16.7 12.4 12.4 16.7 12 22C11.6 16.7 7.3 12.4 2 12C7.3 11.6 11.6 7.3 12 2Z"/></svg>`,
+      capcut: `<svg viewBox="0 0 24 24" class="w-7 h-7 fill-none stroke-white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 10M20 7L4 17"/><path d="M4 7v3M20 7v3M4 14v3M20 14v3"/></svg>`
+    };
+
+    const PRODUCTS = [
+      {
+        id: 'chatgpt-pro',
+        title: 'ChatGPT Pro',
+        baseLabel: '1ខែ',
+        basePrice: 10.00,
+        stock: 20,
+        description: 'ប្រើប្រាស់ GPT-4o / o1 / o3-mini ពេញលេញ ល្បឿនលឿន គ្មានដែនកំណត់',
+        iconBg: 'bg-emerald-500',
+        logo: LOGOS.chatgpt,
+        userPrefix: 'gpt.pro',
+        samplePass: 'OpenAI#2026Pro',
+        durations: [
+          { label: '1ខែ', price: 10.00, badge: '' },
+          { label: '6ខែ', price: 50.00, badge: 'សន្សំ 17%' },
+          { label: '1ឆ្នាំ', price: 90.00, badge: 'សន្សំ 25%' },
+          { label: '2ឆ្នាំ', price: 160.00, badge: 'សន្សំ 33%' }
+        ]
+      },
+      {
+        id: 'vpn-surfshark',
+        title: 'VPN Surfshark',
+        baseLabel: '1ខែ',
+        basePrice: 8.99,
+        stock: 15,
+        description: 'ភ្ជាប់ VPN ល្បឿនលឿនជាង 100 ប្រទេស សុវត្ថិភាពខ្ពស់ គ្មានដែនកំណត់ឧបករណ៍',
+        iconBg: 'bg-cyan-500',
+        logo: LOGOS.surfshark,
+        userPrefix: 'surfshark',
+        samplePass: 'SharkVPN@889',
+        durations: [
+          { label: '1ខែ', price: 8.99, badge: '' },
+          { label: '6ខែ', price: 45.00, badge: 'សន្សំ 16%' },
+          { label: '1ឆ្នាំ', price: 79.00, badge: 'សន្សំ 27%' },
+          { label: '2ឆ្នាំ', price: 139.00, badge: 'សន្សំ 35%' }
+        ]
+      },
+      {
+        id: 'supper-grok',
+        title: 'Supper Grok',
+        baseLabel: '1ខែ',
+        basePrice: 10.00,
+        stock: 12,
+        description: 'ប្រើប្រាស់ Grok AI ជំនាន់ចុងក្រោយ បង្កើតរូបភាព និងវិភាគទិន្នន័យរហ័សទាន់ចិត្ត',
+        iconBg: 'bg-zinc-900 border border-slate-700',
+        logo: LOGOS.grok,
+        userPrefix: 'grok.ai',
+        samplePass: 'xAIGrok#2026',
+        durations: [
+          { label: '1ខែ', price: 10.00, badge: '' },
+          { label: '6ខែ', price: 50.00, badge: 'សន្សំ 17%' },
+          { label: '1ឆ្នាំ', price: 90.00, badge: 'សន្សំ 25%' },
+          { label: '2ឆ្នាំ', price: 160.00, badge: 'សន្សំ 33%' }
+        ]
+      },
+      {
+        id: 'youtube-premium',
+        title: 'YouTube Premium',
+        baseLabel: '1ខែ',
+        basePrice: 3.00,
+        stock: 30,
+        description: 'មើលវីដេអូគ្មានពាណិជ្ជកម្ម រួមបញ្ចូល YouTube Music និងចាក់ពេលបិទអេក្រង់',
+        iconBg: 'bg-red-600',
+        logo: LOGOS.youtube,
+        userPrefix: 'yt.prem',
+        samplePass: 'YTNoAds@2026',
+        durations: [
+          { label: '1ខែ', price: 3.00, badge: '' },
+          { label: '6ខែ', price: 15.00, badge: 'សន្សំ 17%' },
+          { label: '1ឆ្នាំ', price: 27.00, badge: 'សន្សំ 25%' },
+          { label: '2ឆ្នាំ', price: 48.00, badge: 'សន្សំ 33%' }
+        ]
+      },
+      {
+        id: 'canva-pro',
+        title: 'Canva Pro',
+        baseLabel: '1ខែ',
+        basePrice: 12.99,
+        stock: 18,
+        description: 'ដោះសោ Template ពិសេសៗ លុបផ្ទៃខាងក្រោយ (BG Remover) និង Brand Kit ពេញលេញ',
+        iconBg: 'bg-gradient-to-br from-cyan-400 to-purple-600',
+        logo: LOGOS.canva,
+        userPrefix: 'canva.pro',
+        samplePass: 'CanvaDesign#99',
+        durations: [
+          { label: '1ខែ', price: 12.99, badge: '' },
+          { label: '6ខែ', price: 65.00, badge: 'សន្សំ 16%' },
+          { label: '1ឆ្នាំ', price: 115.00, badge: 'សន្សំ 26%' },
+          { label: '2ឆ្នាំ', price: 199.00, badge: 'សន្សំ 36%' }
+        ]
+      },
+      {
+        id: 'gemini-pro',
+        title: 'Gemini Pro',
+        baseLabel: '18ខែ',
+        basePrice: 5.00,
+        stock: 25,
+        description: 'Google One AI Premium រយៈពេល 18 ខែពេញ ជាមួយទំហំផ្ទុក 2TB Cloud Drive',
+        iconBg: 'bg-gradient-to-br from-blue-500 via-indigo-500 to-pink-500',
+        logo: LOGOS.gemini,
+        userPrefix: 'gemini.18m',
+        samplePass: 'Gemini2TB@2026',
+        durations: [
+          { label: '18ខែ', price: 5.00, badge: 'ពេញនិយម' },
+          { label: '1ខែ', price: 1.50, badge: '' },
+          { label: '6ខែ', price: 3.50, badge: '' },
+          { label: '1ឆ្នាំ', price: 4.50, badge: '' },
+          { label: '2ឆ្នាំ', price: 7.50, badge: 'សន្សំ 25%' }
+        ]
+      },
+      {
+        id: 'capcut-pro',
+        title: 'CapCut Pro',
+        baseLabel: '1ខែ',
+        basePrice: 3.99,
+        stock: 14,
+        description: 'កាត់តវីដេអូកម្រិតអាជីព ប្រើ Effects, Transitions, Auto Captions និង 4K Export',
+        iconBg: 'bg-neutral-900 border border-slate-700',
+        logo: LOGOS.capcut,
+        userPrefix: 'capcut.pro',
+        samplePass: 'CapCut4K#2026',
+        durations: [
+          { label: '1ខែ', price: 3.99, badge: '' },
+          { label: '6ខែ', price: 20.00, badge: 'សន្សំ 16%' },
+          { label: '1ឆ្នាំ', price: 36.00, badge: 'សន្សំ 25%' },
+          { label: '2ឆ្នាំ', price: 64.00, badge: 'សន្សំ 33%' }
+        ]
+      }
+    ];
+
+    let activeProduct = null;
+    let selectedDurationIdx = 0;
+    let accountQuantity = 1;
+    let currentUser = null;
+    let currentKHQRPayload = '';
+    let currentKHQRMd5 = '';
+    let pollTimerId = null;
+    let countdownTimerId = null;
+    let remainingSec = PAYMENT_CONFIG.depositExpireSec;
+
+    function tlv(id, value) {
+      const len = String(value.length).padStart(2, '0');
+      return `${id}${len}${value}`;
+    }
+
+    function crc16Ccitt(str) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < str.length; i++) {
+        crc ^= str.charCodeAt(i) << 8;
+        for (let bit = 0; bit < 8; bit++) {
+          if (crc & 0x8000) {
+            crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+          } else {
+            crc = (crc << 1) & 0xFFFF;
+          }
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    // Standard JS MD5 for KHQR MD5 calculation
+    function md5(string) {
+      function rotateLeft(lValue, iShiftBits) {
+        return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));
+      }
+      function addUnsigned(lX, lY) {
+        const lX4 = (lX & 0x40000000), lY4 = (lY & 0x40000000);
+        const lX8 = (lX & 0x80000000), lY8 = (lY & 0x80000000);
+        const lResult = (lX & 0x3FFFFFFF) + (lY & 0x3FFFFFFF);
+        if (lX4 & lY4) return (lResult ^ 0x80000000 ^ lX8 ^ lY8);
+        if (lX4 | lY4) {
+          if (lResult & 0x40000000) return (lResult ^ 0xC0000000 ^ lX8 ^ lY8);
+          else return (lResult ^ 0x40000000 ^ lX8 ^ lY8);
+        } else return (lResult ^ lX8 ^ lY8);
+      }
+      function f(x, y, z) { return (x & y) | ((~x) & z); }
+      function g(x, y, z) { return (x & z) | (y & (~z)); }
+      function h(x, y, z) { return (x ^ y ^ z); }
+      function i(x, y, z) { return (y ^ (x | (~z))); }
+      function ff(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(f(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+      }
+      function gg(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(g(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+      }
+      function hh(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(h(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+      }
+      function ii(a, b, c, d, x, s, ac) {
+        a = addUnsigned(a, addUnsigned(addUnsigned(i(b, c, d), x), ac));
+        return addUnsigned(rotateLeft(a, s), b);
+      }
+      function convertToWordArray(str) {
+        let lWordCount;
+        const lMessageLength = str.length;
+        const lNumberOfWords_temp1 = lMessageLength + 8;
+        const lNumberOfWords_temp2 = (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64;
+        const lNumberOfWords = (lNumberOfWords_temp2 + 1) * 16;
+        const lWordArray = Array(lNumberOfWords - 1);
+        let lBytePosition = 0, lByteCount = 0;
+        while (lByteCount < lMessageLength) {
+          lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+          lBytePosition = (lByteCount % 4) * 8;
+          lWordArray[lWordCount] = (lWordArray[lWordCount] | (str.charCodeAt(lByteCount) << lBytePosition));
+          lByteCount++;
+        }
+        lWordCount = (lByteCount - (lByteCount % 4)) / 4;
+        lBytePosition = (lByteCount % 4) * 8;
+        lWordArray[lWordCount] = lWordArray[lWordCount] | (0x80 << lBytePosition);
+        lWordArray[lNumberOfWords - 2] = lMessageLength << 3;
+        lWordArray[lNumberOfWords - 1] = lMessageLength >>> 29;
+        return lWordArray;
+      }
+      function wordToHex(lValue) {
+        let wordToHexValue = "", wordToHexValue_temp = "", lByte, lCount;
+        for (lCount = 0; lCount <= 3; lCount++) {
+          lByte = (lValue >>> (lCount * 8)) & 255;
+          wordToHexValue_temp = "0" + lByte.toString(16);
+          wordToHexValue = wordToHexValue + wordToHexValue_temp.substr(wordToHexValue_temp.length - 2, 2);
+        }
+        return wordToHexValue;
+      }
+      const x = convertToWordArray(unescape(encodeURIComponent(string)));
+      let a = 0x67452301, b = 0xEFCDAB89, c = 0x98BADCFE, d = 0x10325476;
+      const S11 = 7, S12 = 12, S13 = 17, S14 = 22, S21 = 5, S22 = 9, S23 = 14, S24 = 20;
+      const S31 = 4, S32 = 11, S33 = 16, S34 = 23, S41 = 6, S42 = 10, S43 = 15, S44 = 21;
+      for (let k = 0; k < x.length; k += 16) {
+        const AA = a, BB = b, CC = c, DD = d;
+        a = ff(a, b, c, d, x[k + 0], S11, 0xD76AA478); d = ff(d, a, b, c, x[k + 1], S12, 0xE8C7B756);
+        c = ff(c, d, a, b, x[k + 2], S13, 0x242070DB); b = ff(b, c, d, a, x[k + 3], S14, 0xC1BDCEEE);
+        a = ff(a, b, c, d, x[k + 4], S11, 0xF57C0FAF); d = ff(d, a, b, c, x[k + 5], S12, 0x4787C62A);
+        c = ff(c, d, a, b, x[k + 6], S13, 0xA8304613); b = ff(b, c, d, a, x[k + 7], S14, 0xFD469501);
+        a = ff(a, b, c, d, x[k + 8], S11, 0x698098D8); d = ff(d, a, b, c, x[k + 9], S12, 0x8B44F7AF);
+        c = ff(c, d, a, b, x[k + 10], S13, 0xFFFF5BB1); b = ff(b, c, d, a, x[k + 11], S14, 0x895CD7BE);
+        a = ff(a, b, c, d, x[k + 12], S11, 0x6B901122); d = ff(d, a, b, c, x[k + 13], S12, 0xFD987193);
+        c = ff(c, d, a, b, x[k + 14], S13, 0xA679438E); b = ff(b, c, d, a, x[k + 15], S14, 0x49B40821);
+        a = gg(a, b, c, d, x[k + 1], S21, 0xF61E2562); d = gg(d, a, b, c, x[k + 6], S22, 0xC040B340);
+        c = gg(c, d, a, b, x[k + 11], S23, 0x265E5A51); b = gg(b, c, d, a, x[k + 0], S24, 0xE9B6C7AA);
+        a = gg(a, b, c, d, x[k + 5], S21, 0xD62F105D); d = gg(d, a, b, c, x[k + 10], S22, 0x02441453);
+        c = gg(c, d, a, b, x[k + 15], S23, 0xD8A1E681); b = gg(b, c, d, a, x[k + 4], S24, 0xE7D3FBC8);
+        a = gg(a, b, c, d, x[k + 9], S21, 0x21E1CDE6); d = gg(d, a, b, c, x[k + 14], S22, 0xC33707D6);
+        c = gg(c, d, a, b, x[k + 3], S23, 0xF4D50D87); b = gg(b, c, d, a, x[k + 8], S24, 0x455A14ED);
+        a = gg(a, b, c, d, x[k + 13], S21, 0xA9E3E905); d = gg(d, a, b, c, x[k + 2], S22, 0xFCEFA3F8);
+        c = gg(c, d, a, b, x[k + 7], S23, 0x676F02D9); b = gg(b, c, d, a, x[k + 12], S24, 0x8D2A4C8A);
+        a = hh(a, b, c, d, x[k + 5], S31, 0xFFFA3942); d = hh(d, a, b, c, x[k + 8], S32, 0x8771F681);
+        c = hh(c, d, a, b, x[k + 11], S33, 0x6D9D6122); b = hh(b, c, d, a, x[k + 14], S34, 0xFDE5380C);
+        a = hh(a, b, c, d, x[k + 1], S31, 0xA4BEEA44); d = hh(d, a, b, c, x[k + 4], S32, 0x4BDECFA9);
+        c = hh(c, d, a, b, x[k + 7], S33, 0xF6BB4B60); b = hh(b, c, d, a, x[k + 10], S34, 0xBEBFBC70);
+        a = hh(a, b, c, d, x[k + 13], S31, 0x289B7EC6); d = hh(d, a, b, c, x[k + 0], S32, 0xEAA127FA);
+        c = hh(c, d, a, b, x[k + 3], S33, 0xD4EF3085); b = hh(b, c, d, a, x[k + 6], S34, 0x04881D05);
+        a = hh(a, b, c, d, x[k + 9], S31, 0xD9D4D039); d = hh(d, a, b, c, x[k + 12], S32, 0xE6DB99E5);
+        c = hh(c, d, a, b, x[k + 15], S33, 0x1FA27CF8); b = hh(b, c, d, a, x[k + 2], S34, 0xC4AC5665);
+        a = ii(a, b, c, d, x[k + 0], S41, 0xF4292244); d = ii(d, a, b, c, x[k + 7], S42, 0x432AFF97);
+        c = ii(c, d, a, b, x[k + 14], S43, 0xAB9423A7); b = ii(b, c, d, a, x[k + 5], S44, 0xFC93A039);
+        a = ii(a, b, c, d, x[k + 12], S41, 0x655B59C3); d = ii(d, a, b, c, x[k + 3], S42, 0x8F0CCC92);
+        c = ii(c, d, a, b, x[k + 10], S43, 0xFFEFF47D); b = ii(b, c, d, a, x[k + 1], S44, 0x85845DD1);
+        a = ii(a, b, c, d, x[k + 8], S41, 0x6FA87E4F); d = ii(d, a, b, c, x[k + 15], S42, 0xFE2CE6E0);
+        c = ii(c, d, a, b, x[k + 6], S43, 0xA3014314); b = ii(b, c, d, a, x[k + 13], S44, 0x4E0811A1);
+        a = ii(a, b, c, d, x[k + 4], S41, 0xF7537E82); d = ii(d, a, b, c, x[k + 11], S42, 0xBD3AF235);
+        c = ii(c, d, a, b, x[k + 2], S43, 0x2AD7D2BB); b = ii(b, c, d, a, x[k + 9], S44, 0xEB86D391);
+        a = addUnsigned(a, AA); b = addUnsigned(b, BB); c = addUnsigned(c, CC); d = addUnsigned(d, DD);
+      }
+      return (wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d)).toLowerCase();
+    }
+
+    function buildBakongKHQR(amountUsd, billNumber) {
+      const payloadFormatIndicator = tlv('00', '01');
+      const pointOfInitiation = tlv('01', '12');
+      const bakongAccountInfo = tlv('29', tlv('00', PAYMENT_CONFIG.bankAccount));
+      const merchantCategoryCode = tlv('52', '5999');
+      const transactionCurrency = tlv('53', '840');
+      const transactionAmount = tlv('54', Number(amountUsd).toFixed(2));
+      const countryCode = tlv('58', 'KH');
+      const merchantName = tlv('59', PAYMENT_CONFIG.merchantName.slice(0, 25));
+      const merchantCity = tlv('60', PAYMENT_CONFIG.merchantCity.slice(0, 15));
+      const additionalData = tlv('62', tlv('01', String(billNumber).slice(0, 25)));
+
+      const withoutCrc =
+        payloadFormatIndicator +
+        pointOfInitiation +
+        bakongAccountInfo +
+        merchantCategoryCode +
+        transactionCurrency +
+        transactionAmount +
+        countryCode +
+        merchantName +
+        merchantCity +
+        additionalData +
+        '6304';
+
+      const checksum = crc16Ccitt(withoutCrc);
+      return `${withoutCrc}${checksum}`;
+    }
+
+    function stopPaymentPolling() {
+      if (pollTimerId) {
+        clearInterval(pollTimerId);
+        pollTimerId = null;
+      }
+      if (countdownTimerId) {
+        clearInterval(countdownTimerId);
+        countdownTimerId = null;
+      }
+    }
+
+    function startPaymentPolling() {
+      stopPaymentPolling();
+      remainingSec = PAYMENT_CONFIG.depositExpireSec;
+
+      const statusEl = document.getElementById('khqr-status-text');
+      const updateStatusLabel = () => {
+        statusEl.textContent = `កំពុងរង់ចាំការទូទាត់... (នៅសល់ ${remainingSec}s • ពិនិត្យរៀងរាល់ ${PAYMENT_CONFIG.pollIntervalSec}s)`;
+      };
+      updateStatusLabel();
+
+      countdownTimerId = setInterval(() => {
+        remainingSec -= 1;
+        if (remainingSec <= 0) {
+          stopPaymentPolling();
+          statusEl.textContent = 'ផុតកំណត់ 300 វិនាទី! សូមត្រឡប់ក្រោយដើម្បី Generate KHQR ថ្មី។';
+          return;
+        }
+        updateStatusLabel();
+      }, 1000);
+
+      if (!WORKER_CHECK_URL || WORKER_CHECK_URL.startsWith('YOUR_CLOUDFLARE_WORKER_URL')) {
+        return;
+      }
+
+      pollTimerId = setInterval(async () => {
+        try {
+          const res = await fetch(WORKER_CHECK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ md5: currentKHQRMd5 })
+          });
+          const data = await res.json();
+          if (data && data.paid) {
+            stopPaymentPolling();
+            confirmPaymentAndDeliver();
+          }
+        } catch (err) {
+          // Silent retry on next poll interval
+        }
+      }, PAYMENT_CONFIG.pollIntervalSec * 1000);
+    }
+
+    function generateKHQRBox(amountUsd, billNumber) {
+      const container = document.getElementById('khqr-code-box');
+      container.innerHTML = '';
+      currentKHQRPayload = buildBakongKHQR(amountUsd, billNumber);
+      currentKHQRMd5 = md5(currentKHQRPayload);
+
+      if (window.QRCode) {
+        new QRCode(container, {
+          text: currentKHQRPayload,
+          width: 176,
+          height: 176,
+          colorDark: '#0f172a',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      }
+
+      startPaymentPolling();
+    }
+
+    function copyKHQRPayload() {
+      if (!currentKHQRPayload) return;
+      navigator.clipboard.writeText(currentKHQRPayload).then(() => {
+        const btn = document.getElementById('copy-khqr-btn');
+        const original = btn.textContent;
+        btn.textContent = '✓ បានចម្លង';
+        setTimeout(() => {
+          btn.textContent = original;
+        }, 1500);
+      });
+    }
+
+    function downloadGeneratedKHQR() {
+      const qrBox = document.getElementById('khqr-code-box');
+      const img = qrBox.querySelector('img');
+      const canvas = qrBox.querySelector('canvas');
+      const dataUrl = img ? img.src : (canvas ? canvas.toDataURL('image/png') : '');
+      if (!dataUrl) return;
+
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      link.download = `KHQR-${PAYMENT_CONFIG.bankAccount}-${document.getElementById('khqr-amount-display').textContent}USD.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function switchAuthMode(mode) {
+      const regTab = document.getElementById('tab-register');
+      const loginTab = document.getElementById('tab-login');
+      const regForm = document.getElementById('register-form');
+      const loginForm = document.getElementById('login-form');
+
+      document.getElementById('auth-error-msg').classList.add('hidden');
+      document.getElementById('login-error-msg').classList.add('hidden');
+
+      if (mode === 'register') {
+        regTab.className = 'py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer';
+        loginTab.className = 'py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer';
+        regForm.classList.remove('hidden');
+        loginForm.classList.add('hidden');
+      } else {
+        loginTab.className = 'py-2 rounded-xl text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 transition cursor-pointer';
+        regTab.className = 'py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white transition cursor-pointer';
+        loginForm.classList.remove('hidden');
+        regForm.classList.add('hidden');
+      }
+    }
+
+    function isValidEmailOrPhone(value) {
+      const trimmed = value.trim();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRegex = /^[+0-9\s()-]{7,18}$/;
+      return emailRegex.test(trimmed) || phoneRegex.test(trimmed);
+    }
+
+    function handleRegisterSubmit(event) {
+      event.preventDefault();
+      const name = document.getElementById('reg-name').value.trim();
+      const contact = document.getElementById('reg-contact').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const errEl = document.getElementById('auth-error-msg');
+
+      if (!name) {
+        errEl.textContent = 'សូមបញ្ចូលឈ្មោះរបស់អ្នក!';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (!isValidEmailOrPhone(contact)) {
+        errEl.textContent = 'សូមបញ្ចូលអ៊ីមែល ឬលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ!';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (password.length < 6) {
+        errEl.textContent = 'Password ត្រូវតែមានយ៉ាងតិច ៦ តួ!';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      errEl.classList.add('hidden');
+      const users = JSON.parse(localStorage.getItem('khmer_smm_accounts') || '[]');
+      const normalizedContact = contact.toLowerCase();
+      const existingIdx = users.findIndex(u => u.contact.toLowerCase() === normalizedContact);
+      const newUser = {
+        name: name,
+        contact: contact,
+        password: password,
+        picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=334155&color=fff&bold=true`
+      };
+
+      if (existingIdx >= 0) {
+        users[existingIdx] = newUser;
+      } else {
+        users.push(newUser);
+      }
+      localStorage.setItem('khmer_smm_accounts', JSON.stringify(users));
+      completeLogin(newUser);
+    }
+
+    function handleLoginSubmit(event) {
+      event.preventDefault();
+      const contact = document.getElementById('login-contact').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errEl = document.getElementById('login-error-msg');
+
+      if (!isValidEmailOrPhone(contact)) {
+        errEl.textContent = 'សូមបញ្ចូលអ៊ីមែល ឬលេខទូរស័ព្ទឱ្យបានត្រឹមត្រូវ!';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem('khmer_smm_accounts') || '[]');
+      const matched = users.find(u => u.contact.toLowerCase() === contact.toLowerCase());
+
+      if (matched) {
+        if (matched.password !== password) {
+          errEl.textContent = 'Password មិនត្រឹមត្រូវទេ!';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        errEl.classList.add('hidden');
+        completeLogin(matched);
+      } else {
+        errEl.classList.add('hidden');
+        const derivedName = contact.includes('@')
+          ? contact.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase())
+          : contact;
+        completeLogin({
+          name: derivedName || 'User',
+          contact: contact,
+          password: password,
+          picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(derivedName || 'U')}&background=334155&color=fff&bold=true`
+        });
+      }
+    }
+
+    function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      return JSON.parse(jsonPayload);
+    }
+
+    function onGoogleCredentialResponse(response) {
+      const payload = parseJwt(response.credential);
+      completeLogin({
+        name: payload.name,
+        contact: payload.email,
+        picture: payload.picture
+      });
+    }
+
+    function openGoogleEmailChooser() {
+      if (window.google && google.accounts && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+        google.accounts.id.prompt();
+        return;
+      }
+      document.getElementById('google-initial-actions').classList.add('hidden');
+      document.getElementById('google-email-panel').classList.remove('hidden');
+      setTimeout(() => {
+        document.getElementById('guest-google-email').focus();
+      }, 50);
+    }
+
+    function closeGoogleEmailChooser() {
+      document.getElementById('google-email-panel').classList.add('hidden');
+      document.getElementById('google-initial-actions').classList.remove('hidden');
+      document.getElementById('email-error-msg').classList.add('hidden');
+    }
+
+    function submitGuestGoogleEmail(event) {
+      event.preventDefault();
+      const input = document.getElementById('guest-google-email');
+      const email = input.value.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!emailRegex.test(email)) {
+        document.getElementById('email-error-msg').classList.remove('hidden');
+        return;
+      }
+
+      document.getElementById('email-error-msg').classList.add('hidden');
+      const namePart = email.split('@')[0].replace(/[._-]+/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+
+      completeLogin({
+        name: namePart || 'Google User',
+        contact: email,
+        picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(namePart || 'U')}&background=334155&color=fff&bold=true`
+      });
+    }
+
+    function completeLogin(user) {
+      currentUser = user;
+      localStorage.setItem('khmer_smm_user', JSON.stringify(user));
+
+      document.getElementById('user-name').textContent = user.name;
+      document.getElementById('user-email').textContent = user.contact;
+      document.getElementById('user-avatar').src = user.picture || 'https://ui-avatars.com/api/?name=User&background=334155&color=fff';
+
+      document.getElementById('auth-screen').classList.add('hidden');
+      document.getElementById('store-screen').classList.remove('hidden');
+      renderProducts();
+    }
+
+    function logoutUser() {
+      currentUser = null;
+      localStorage.removeItem('khmer_smm_user');
+      closeCheckoutModal();
+      document.getElementById('guest-google-email').value = '';
+      closeGoogleEmailChooser();
+      document.getElementById('store-screen').classList.add('hidden');
+      document.getElementById('auth-screen').classList.remove('hidden');
+    }
+
+    function initAuth() {
+      const savedUser = localStorage.getItem('khmer_smm_user');
+      if (savedUser) {
+        try {
+          completeLogin(JSON.parse(savedUser));
+          return;
+        } catch (e) {
+          localStorage.removeItem('khmer_smm_user');
+        }
+      }
+
+      if (window.google && google.accounts && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: onGoogleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+          document.getElementById('g_id_signin_wrapper'),
+          { theme: 'outline', size: 'large', shape: 'pill', width: 320 }
+        );
+      }
+    }
+
+    function renderProducts() {
+      const grid = document.getElementById('product-grid');
+      grid.innerHTML = PRODUCTS.map(product => `
+        <div class="glass-card product-card rounded-3xl p-6 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center gap-4 mb-4">
+              <div class="w-14 h-14 rounded-2xl ${product.iconBg} flex items-center justify-center shadow-lg shrink-0">
+                ${product.logo}
+              </div>
+              <div>
+                <h2 class="text-lg font-bold text-white leading-snug">${product.title}</h2>
+                <div class="flex items-baseline gap-1.5 mt-0.5">
+                  <span class="text-xl font-extrabold text-emerald-400">$${product.basePrice.toFixed(2)}</span>
+                  <span class="text-xs text-slate-400 font-medium">/ ${product.baseLabel}</span>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed mb-6">
+              ${product.description}
+            </p>
+          </div>
+          <button onclick="openCheckoutModal('${product.id}')" class="w-full py-3 rounded-2xl btn-neon text-white font-bold text-sm shadow-md cursor-pointer">
+            ទិញឥឡូវនេះ
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function openCheckoutModal(productId) {
+      activeProduct = PRODUCTS.find(p => p.id === productId);
+      if (!activeProduct) return;
+
+      selectedDurationIdx = 0;
+      accountQuantity = 1;
+      document.getElementById('account-qty-input').value = 1;
+
+      document.getElementById('modal-product-title').textContent = activeProduct.title;
+      document.getElementById('modal-product-sub').textContent = 'ជ្រើសរើសរយៈពេល & ចំនួន Account';
+      const iconBox = document.getElementById('modal-product-icon');
+      iconBox.className = `w-11 h-11 rounded-2xl ${activeProduct.iconBg} flex items-center justify-center shadow-md shrink-0`;
+      iconBox.innerHTML = activeProduct.logo;
+
+      renderDurationButtons();
+      updatePriceSummary();
+      showView('step-duration-view');
+
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCheckoutModal() {
+      stopPaymentPolling();
+      const modal = document.getElementById('checkout-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function showView(viewId) {
+      ['step-duration-view', 'step-qr-view', 'step-delivery-success'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(viewId).classList.remove('hidden');
+    }
+
+    function renderDurationButtons() {
+      const container = document.getElementById('duration-options');
+      container.innerHTML = activeProduct.durations.map((dur, idx) => `
+        <button type="button" onclick="selectDuration(${idx})" class="duration-card ${idx === selectedDurationIdx ? 'selected' : ''} rounded-2xl p-4 text-left relative cursor-pointer">
+          ${dur.badge ? `<span class="absolute top-2.5 right-2.5 text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${dur.badge}</span>` : ''}
+          <span class="block text-base font-bold text-white">${dur.label}</span>
+          <span class="block text-lg font-extrabold text-emerald-400 mt-1">$${dur.price.toFixed(2)}</span>
+        </button>
+      `).join('');
+    }
+
+    function selectDuration(idx) {
+      selectedDurationIdx = idx;
+      renderDurationButtons();
+      updatePriceSummary();
+    }
+
+    function adjustQuantity(delta) {
+      const input = document.getElementById('account-qty-input');
+      let current = parseInt(input.value, 10);
+      if (isNaN(current) || current < 1) current = 1;
+      const next = Math.max(1, Math.min(1000, current + delta));
+      input.value = next;
+      accountQuantity = next;
+      updatePriceSummary();
+    }
+
+    function handleQuantityInput() {
+      const input = document.getElementById('account-qty-input');
+      const parsed = parseInt(input.value, 10);
+      if (!isNaN(parsed) && parsed >= 1) {
+        accountQuantity = Math.min(1000, parsed);
+      } else {
+        accountQuantity = 1;
+      }
+      updatePriceSummary();
+    }
+
+    function normalizeQuantityInput() {
+      const input = document.getElementById('account-qty-input');
+      let parsed = parseInt(input.value, 10);
+      if (isNaN(parsed) || parsed < 1) parsed = 1;
+      if (parsed > 1000) parsed = 1000;
+      input.value = parsed;
+      accountQuantity = parsed;
+      updatePriceSummary();
+    }
+
+    function updatePriceSummary() {
+      const dur = activeProduct.durations[selectedDurationIdx];
+      const total = dur.price * accountQuantity;
+      document.getElementById('summary-formula').textContent = `${dur.label} ($${dur.price.toFixed(2)} × ${accountQuantity} Account)`;
+      document.getElementById('total-usd-preview').textContent = `$${total.toFixed(2)}`;
+    }
+
+    function proceedToQRView() {
+      normalizeQuantityInput();
+      const dur = activeProduct.durations[selectedDurationIdx];
+      const totalUsd = Number((dur.price * accountQuantity).toFixed(2));
+      const billNo = `KSM${Date.now().toString().slice(-8)}`;
+
+      document.getElementById('modal-product-sub').textContent = `${dur.label} × ${accountQuantity} Account • $${totalUsd.toFixed(2)} USD`;
+      document.getElementById('khqr-amount-display').textContent = totalUsd.toFixed(2);
+      document.getElementById('qr-instruction-detail').textContent = `ស្កេន KHQR ដើម្បីផ្ទេរប្រាក់ចំនួន $${totalUsd.toFixed(2)} USD • ${PAYMENT_CONFIG.merchantCity}`;
+
+      generateKHQRBox(totalUsd, billNo);
+      showView('step-qr-view');
+    }
+
+    function confirmPaymentAndDeliver() {
+      stopPaymentPolling();
+      const dur = activeProduct.durations[selectedDurationIdx];
+      deliverAccounts(dur, accountQuantity);
+    }
+
+    function backToDurationSelection() {
+      stopPaymentPolling();
+      document.getElementById('modal-product-sub').textContent = 'ជ្រើសរើសរយៈពេល & ចំនួន Account';
+      showView('step-duration-view');
+    }
+
+    function deliverAccounts(durationObj, qty) {
+      activeProduct.stock = Math.max(0, activeProduct.stock - qty);
+      const alertBanner = document.getElementById('stock-alert-banner');
+      if (activeProduct.stock <= PAYMENT_CONFIG.stockAlertMin) {
+        alertBanner.textContent = `⚠ Stock Alert: ${activeProduct.title} នៅសល់តែ ${activeProduct.stock} Account ប៉ុណ្ណោះ (តិចជាង ឬស្មើ ${PAYMENT_CONFIG.stockAlertMin})!`;
+        alertBanner.classList.remove('hidden');
+      } else {
+        alertBanner.classList.add('hidden');
+      }
+
+      document.getElementById('modal-product-sub').textContent = 'ទទួលបានអាខោនជោគជ័យ';
+      document.getElementById('delivered-service-name').textContent = `${activeProduct.title} (${durationObj.label} × ${qty})`;
+
+      const listContainer = document.getElementById('delivered-accounts-list');
+      const itemsHtml = [];
+      for (let i = 1; i <= qty; i++) {
+        const emailId = `delivered-email-${i}`;
+        const passId = `delivered-pass-${i}`;
+        const userEmail = `${activeProduct.userPrefix}${qty > 1 ? '.' + i : ''}@khmersmm.com`;
+        const userPass = `${activeProduct.samplePass}${qty > 1 ? i : ''}`;
+
+        itemsHtml.push(`
+          <div class="bg-slate-950/70 border border-slate-800/90 rounded-xl p-3 space-y-2">
+            ${qty > 1 ? `<div class="text-[11px] font-bold text-cyan-400">Account #${i}</div>` : ''}
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-0.5">Email / Username</span>
+              <div class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5">
+                <code id="${emailId}" class="text-xs text-emerald-400 font-mono select-all">${userEmail}</code>
+                <button onclick="copyField('${emailId}', this)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-0.5 rounded transition cursor-pointer">Copy</button>
+              </div>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 block mb-0.5">Password</span>
+              <div class="flex items-center justify-between bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5">
+                <code id="${passId}" class="text-xs text-amber-300 font-mono select-all">${userPass}</code>
+                <button onclick="copyField('${passId}', this)" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-white px-2 py-0.5 rounded transition cursor-pointer">Copy</button>
+              </div>
+            </div>
+          </div>
+        `);
+      }
+      listContainer.innerHTML = itemsHtml.join('');
+      showView('step-delivery-success');
+    }
+
+    function copyField(elementId, btn) {
+      const text = document.getElementById(elementId).textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.classList.add('bg-emerald-600');
+        setTimeout(() => {
+          btn.textContent = original;
+          btn.classList.remove('bg-emerald-600');
+        }, 1500);
+      });
+    }
+
+    window.addEventListener('load', initAuth);
+  </script>
+</body>
+</html>
